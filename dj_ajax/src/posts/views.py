@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from .models import Post
+from .models import Post, Photo
 from django.http import JsonResponse
+from django.http import HttpResponse
 from .forms import PostForm
 from profiles.models import Profile
 # Create your views here.
@@ -81,5 +82,31 @@ def like_unlike_post(request):
             obj.liked.add(request.user)
         return JsonResponse({'liked': liked, 'count': obj.like_count})
 
-def hello_world_view(request):
-    return JsonResponse({'text': 'hello world x2'})
+def update_post(request, pk):
+    obj = Post.objects.get(pk=pk)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        new_title = request.POST.get('title')
+        new_body = request.POST.get('body')
+        obj.title = new_title
+        obj.body = new_body
+        obj.save()
+        return JsonResponse({
+            'title': new_title,
+            'body': new_body,
+        })
+
+def delete_post(request, pk):
+    obj=Post.objects.get(pk=pk)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        obj.delete()
+        return JsonResponse({})
+
+
+def image_upload_view(request):
+    #print(request.FILES)
+    if request.method == 'POST':
+        img = request.FILES.get('file')
+        new_post_id = request.POST.get('new_post_id')
+        post = Post.objects.get(id=new_post_id)
+        Photo.objects.create(image=img, post=post)
+    return HttpResponse()
