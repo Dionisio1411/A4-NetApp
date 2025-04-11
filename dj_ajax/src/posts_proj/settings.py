@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     'profiles',
     # 3rd party apps
     'crispy_forms',
-
+    'crispy_bootstrap5', 
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap5' # crispy was outdated so i grabbed this :3
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

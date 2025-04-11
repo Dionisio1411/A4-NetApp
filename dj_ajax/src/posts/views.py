@@ -1,32 +1,51 @@
 from django.shortcuts import render
 from .models import Post
 from django.http import JsonResponse
-
+from .forms import PostForm
+from profiles.models import Profile
 # Create your views here.
 
 def post_list_and_create(request):
-    qs = Post.objects.all()
-    return render(request, 'posts/main.html', {'qs': qs})
+    form = PostForm(request.POST or None)
+    #qs = Post.objects.all()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if form.is_valid():
+            author = Profile.objects.get(user=request.user)
+            instance = form.save(commit = False)
+            instance.author = author
+            instance.save()
+            return JsonResponse({
+                'title': instance.title,
+                'body': instance.body,
+                'author': instance.author.user.username,
+                'id': instance.id,
+            })
+    context = {
+        'form': form,
+    }
+
+    return render(request, 'posts/main.html', context)
 
 def load_post_data_view(request, num_post):
-    visible = 3
-    upper = num_post 
-    lower = num_post - visible 
-    size = Post.objects.all().count()
-    
-    qs = Post.objects.all()
-    data = []
-    for obj in qs:
-        item = {
-            'id': obj.id,
-            'title': obj.title,
-            'body':obj.body,
-            'liked': True if request.user in obj.liked.all() else False,
-            'count': obj.like_count,
-            'author':obj.author.user.username,
-        }
-        data.append(item)
-    return JsonResponse({'data':data[lower:upper], 'size': size})
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        visible = 3
+        upper = num_post 
+        lower = num_post - visible 
+        size = Post.objects.all().count()
+        
+        qs = Post.objects.all()
+        data = []
+        for obj in qs:
+            item = {
+                'id': obj.id,
+                'title': obj.title,
+                'body':obj.body,
+                'liked': True if request.user in obj.liked.all() else False,
+                'count': obj.like_count,
+                'author':obj.author.user.username,
+            }
+            data.append(item)
+        return JsonResponse({'data':data[lower:upper], 'size': size})
 
 def like_unlike_post(request):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
