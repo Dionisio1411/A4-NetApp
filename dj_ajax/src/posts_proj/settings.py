@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap5' # crispy was outdated so i grabbed this :3
+LOGIN_URL = '/admin/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
